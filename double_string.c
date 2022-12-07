@@ -55,11 +55,12 @@ void double_to_string(double num, int precision, char *s)
         buf[i] = (ceil % base + '0');
     for (i--; i >= 0; i--, s++)
         *s = buf[i]; 
+
     last_digit = -1;
     for (i = 0; precision > 0; i++, precision--) {
         num *= (double)base;
         ceil = (int)num;
-        num -= ceil;
+        num -= (double)ceil;
         buf[i] = ceil + '0';  
         if (buf[i] != '0')
             last_digit = i;
