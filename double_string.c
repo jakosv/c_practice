@@ -3,10 +3,18 @@
 
 enum { max_length = 50 };
 
+int string_length(const char *s)
+{
+    const char *p;
+    for (p = s; *p; p++)
+        {}
+    return p - s;
+}
+
 double string_to_double(const char *s)
 {
-    double res, point_base;
-    int ceil_part, frac_part, base, sign;
+    double res, frac_part;
+    int ceil_part, base, sign, i, slen;
 
     sign = 1;
     if (*s == '-') {
@@ -24,54 +32,58 @@ double string_to_double(const char *s)
     if (!(*s))
         return (double)sign * (double)ceil_part;
 
+    s++;
     frac_part = 0;
-    point_base = 1;
-    for (s++; *s; s++) {
-        frac_part = frac_part * base + (*s - '0');
-        point_base /= 10;
+    slen = string_length(s);
+    for (i = slen - 1; i >= 0; i--) {
+        frac_part += (double)(s[i] - '0');
+        frac_part /= (double)base;
     }
-    res = (double)ceil_part + point_base * (double)frac_part;
+    res = (double)ceil_part + frac_part;
     res *= (double)sign;
     return res;
 }
 
 void double_to_string(double num, int precision, char *s)
 {
-    int ceil, last_digit, base, i;
+    int ceil, last_not_zero, base, i, slen;
     char buf[max_length];
+
+    slen = 0;
     if (num < 0) {
-        *s = '-';
-        s++;
+        s[slen] = '-';
+        slen++;
         num *= -1.0;
     }
+
     base = 10;
     ceil = (int)num;
     if (!ceil) {
-        *s = '0';
-        s++;
+        s[slen] = '0';
+        slen++;
     }
     num -= (double)ceil;
     for (i = 0; ceil > 0; i++, ceil /= 10)
         buf[i] = (ceil % base + '0');
-    for (i--; i >= 0; i--, s++)
-        *s = buf[i]; 
+    for (i--; i >= 0; i--, slen++)
+        s[slen] = buf[i]; 
 
-    last_digit = -1;
-    for (i = 0; precision > 0; i++, precision--) {
+    last_not_zero = -1;
+    for (i = 0; precision > 0 && i < max_length; precision--, i++) {
         num *= (double)base;
         ceil = (int)num;
         num -= (double)ceil;
         buf[i] = ceil + '0';  
         if (buf[i] != '0')
-            last_digit = i;
+            last_not_zero = i;
     } 
-    if (last_digit != -1) {
-        *s = '.';
-        s++;
+    if (last_not_zero != -1) {
+        s[slen] = '.';
+        slen++;
     }
-    for (i = 0; i <= last_digit; i++, s++)
-        *s = buf[i];
-    *s = 0;
+    for (i = 0; i <= last_not_zero && slen < max_length; i++, slen++)
+        s[slen] = buf[i];
+    s[slen] = 0;
 }
 
 int main(int argc, char **argv)
