@@ -1,8 +1,5 @@
 #include "operator.h"
 
-#include <stdlib.h>
-#include <stdio.h>
-
 int bin_pow(int a, int p)
 {
     if (p == 1)
@@ -79,30 +76,32 @@ int operator_priority(char op)
     return 0;
 }
 
-void perform_operation(char op, num_stack_t *st)
+void perform_operation(char op, int_stack_t *st)
 {
     int a, b, res;
     if (st->size < 2) {
-        printf("num_stack_perform_op('%c'): too few operands on stack.", op);
+        /*
+        printf("int_stack_perform_op('%c'): too few operands on stack.", op);
+        */
         return;
     }
-    b = num_stack_top(st);
-    num_stack_pop(st);
-    a = num_stack_top(st);
-    num_stack_pop(st);
+    b = int_stack_top(st);
+    int_stack_pop(st);
+    a = int_stack_top(st);
+    int_stack_pop(st);
     res = perform_binary_operation(a, b, op);
     /*
     printf("%d %c %d = %d\n", a, op, b, res);
     */
-    num_stack_push(res, st);
+    int_stack_push(res, st);
 }
 
-void handle_stack_operators(op_stack_t *op_st, num_stack_t *num_st)
+void handle_stack_operators(char_stack_t *op_st, int_stack_t *num_st)
 {
-    while (!op_stack_empty(op_st)) {
+    while (!char_stack_empty(op_st)) {
         char op;
-        op = op_stack_top(op_st);
-        op_stack_pop(op_st);
+        op = char_stack_top(op_st);
+        char_stack_pop(op_st);
         if (op == '(') {
             break;
         } else {
@@ -111,22 +110,22 @@ void handle_stack_operators(op_stack_t *op_st, num_stack_t *num_st)
     }
 }
 
-void sift_operator(char op, op_stack_t *op_st, num_stack_t *num_st)
+void sift_operator(char op, char_stack_t *op_st, int_stack_t *num_st)
 {
-    while (!op_stack_empty(op_st)) {
+    while (!char_stack_empty(op_st)) {
         char top_op;
-        top_op = op_stack_top(op_st);
+        top_op = char_stack_top(op_st);
         if (top_op == '(') {
             if (op == ')')
-                op_stack_pop(op_st);
+                char_stack_pop(op_st);
             else
-                op_stack_push(op, op_st);
+                char_stack_push(op, op_st);
             return;
         } else if (operator_priority(op) <= operator_priority(top_op)) {
-            op_stack_pop(op_st);
+            char_stack_pop(op_st);
             perform_operation(top_op, num_st);
         } else {
-            op_stack_push(op, op_st);
+            char_stack_push(op, op_st);
             return;
         }
     }

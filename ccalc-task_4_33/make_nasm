@@ -1,0 +1,37 @@
+#!/bin/sh
+
+OS=macos
+NASM_KEYS='-g'
+LD_KEYS=''
+
+if [ $OS = 'macos' ]; then
+    NASM_KEYS="$NASM_KEYS -f macho -dOS_FREEBSD" 
+    LD_KEYS="$LD_KEYS -e _start -lSystem -macosx_version_min 10.13"
+elif [ $OS = 'freebsd' ]; then
+    ARCH='elf32'
+    NASM_KEYS="$NASM_KEYS -f elf32 -dOS_FREEBSD" 
+    LD_KEYS="$LD_KEYS -m elf_i386_fbsd"
+elif [ $OS = 'linux' ]; then
+    ARCH='elf32'
+    NASM_KEYS="$NASM_KEYS -f elf32 -dOS_LINUX" 
+    LD_KEYS="$LD_KEYS -m elf_i386"
+else
+    echo "Error: unknown OS: $OS"
+    exit 1
+fi
+
+ARGS=$@
+PNAME=$1
+CHANGES=false
+OBJS=''
+for FNAME in $ARGS; do
+    if [ ! -f "$FNAME.o" -o "$FNAME.asm" -nt "$FNAME.o" ]; then
+        nasm $NASM_KEYS "$FNAME.asm" $NASM_KEYS
+        CHANGES=true
+    fi
+    OBJS="$OBJS $FNAME.o"
+done
+
+if [ ! -f "$PNAME" -o "$CHANGES" = "true" ]; then
+    ld $LD_KEYS -o $PNAME $OBJS
+fi

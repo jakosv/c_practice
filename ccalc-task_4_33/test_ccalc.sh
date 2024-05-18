@@ -1,7 +1,9 @@
 #!/bin/sh
 
+prog="ccalc"
+
 while read a b ; do
-    res=`echo "$a" | ./task_4_33`
+    res=`echo "$a" | ./$prog`
     if [ x"$res" != x"$b" ] ; then
         echo TEST $a FAILED: expected "\$1 = $b", got "$res"
     fi

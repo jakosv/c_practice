@@ -1,14 +1,12 @@
 #ifndef OP_STACK_H_SENTRY
 #define OP_STACK_H_SENTRY
 
-struct op_stack_item {
-    char oper;
-    struct op_stack_item *next;
-};
+enum { max_op_stack_size = 1000 };
 
 typedef struct op_stack {
     int size;
-    struct op_stack_item *top;
+    int top_idx;
+    char data[max_op_stack_size];
 } op_stack_t;
 
 void op_stack_init(op_stack_t *st);
