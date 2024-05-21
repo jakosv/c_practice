@@ -76,6 +76,26 @@ int operator_priority(char op)
     return 0;
 }
 
+int is_operator(char op)
+{
+    return operator_priority(op) > 0;
+}
+
+int is_open_bracket(char op)
+{
+    return op == '(';
+}
+
+int is_close_bracket(char op)
+{
+    return op == ')';
+}
+
+int is_bracket(char op)
+{
+    return is_open_bracket(op) || is_close_bracket(op);
+}
+
 void perform_operation(char op, int_stack_t *st)
 {
     int a, b, res;
@@ -106,27 +126,6 @@ void handle_stack_operators(char_stack_t *op_st, int_stack_t *num_st)
             break;
         } else {
             perform_operation(op, num_st);
-        }
-    }
-}
-
-void sift_operator(char op, char_stack_t *op_st, int_stack_t *num_st)
-{
-    while (!char_stack_empty(op_st)) {
-        char top_op;
-        top_op = char_stack_top(op_st);
-        if (top_op == '(') {
-            if (op == ')')
-                char_stack_pop(op_st);
-            else
-                char_stack_push(op, op_st);
-            return;
-        } else if (operator_priority(op) <= operator_priority(top_op)) {
-            char_stack_pop(op_st);
-            perform_operation(top_op, num_st);
-        } else {
-            char_stack_push(op, op_st);
-            return;
         }
     }
 }
