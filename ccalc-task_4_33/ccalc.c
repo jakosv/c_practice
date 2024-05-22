@@ -23,6 +23,7 @@ int main()
 
     status = ps_ok;
     while (status != ps_eof) {
+        enum expr_evulator_status evulate_status;
         int res;
         expression_init(&expr);
         status = parse_expression(&expr);
@@ -33,8 +34,11 @@ int main()
         }
         if (expr.size == 0)
             continue;
-        res = evulate_expression(&expr);
-        print_int(res);
+        evulate_status = evulate_expression(&expr, &res);
+        if (evulate_status == es_err)
+            print_str(expr_evulator_err_msg);
+        else
+            print_int(res);
     }
 
     /*

@@ -27,6 +27,12 @@ int int_to_str(int n, char *buf, int size)
 {
     int i, sign;
 
+    if (n == 0) {
+        buf[0] = '0';
+        buf[1] = '\0';
+        return 1;
+    }
+
     sign = n < 0;
     if (sign) {
         n *= -1;

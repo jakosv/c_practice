@@ -121,10 +121,10 @@ void handle_stack_operators(char_stack_t *op_st, int_stack_t *num_st)
     while (!char_stack_empty(op_st)) {
         char op;
         op = char_stack_top(op_st);
-        char_stack_pop(op_st);
         if (op == '(') {
             break;
         } else {
+            char_stack_pop(op_st);
             perform_operation(op, num_st);
         }
     }

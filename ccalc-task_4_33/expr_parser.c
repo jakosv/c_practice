@@ -34,6 +34,7 @@ static void parser_handle_unknown_symbol(parser_t *parser)
 {
     char ch = parser->ch;
     if (is_space_symbol(ch)) {
+        parser->state = pst_read;
         parser->status = ps_ok;
         return;
     }
