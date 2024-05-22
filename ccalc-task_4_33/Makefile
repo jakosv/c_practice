@@ -1,9 +1,10 @@
 PROG = ccalc 
 ASM = nasm
 LD = ld
-CFLAGS = -Wall -g -m32
+CFLAGS = -Wall -ansi -pedantic -g -m32
 ASMFLAGS = -g
-OBJMODULES = ccalc.o operator.o stack.o history_buffer.o #syscall.o
+OBJMODULES = ccalc.o operator.o stack.o history_buffer.o syscall.o \
+			 expression.o expr_parser.o expr_evulator.o util.o
 
 UNAME_S = $(shell uname -s)
 ifeq ($(UNAME_S),Linux)
