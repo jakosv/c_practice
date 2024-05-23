@@ -8,18 +8,13 @@
 
 int main()
 {
-
-    /*
     history_buffer_t history;
-    */
 
     enum parser_status status;
 
     expression_t expr;
 
-    /*
     history_init(&history);
-    */
 
     status = ps_ok;
     while (status != ps_eof) {
@@ -28,18 +23,24 @@ int main()
         expression_init(&expr);
         status = parse_expression(&expr);
         if (status == ps_err) {
-            print_str(parser_err_msg);
+            print_str_line(parser_err_msg);
             status = ps_ok;
             continue;
         }
         if (expr.size == 0)
             continue;
-        eval_status = eval_expression(&expr, &res);
+        eval_status = eval_expression(&expr, &history);
         if (eval_status == es_err)
-            print_str(expr_eval_err_msg);
-        else
-            print_int(res);
+            print_str_line(expr_eval_err_msg);
+        else {
+            print_str("$");
+            print_int(history_size(&history)-1);
+            print_str(" = ");
+            print_int_line(history_top(&history));
+        }
     }
+
+    history_destroy(&history);
 
     /*
     status = ps_ok;

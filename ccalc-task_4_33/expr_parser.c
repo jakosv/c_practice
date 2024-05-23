@@ -11,6 +11,15 @@ char parser_err_msg[max_parser_err_msg_len];
 
 static const char unknown_symbol_err_msg[] = "Parse error: unknown symbol '";
 
+enum parser_states { pst_read, pst_num_read };
+
+typedef struct parser {
+    char ch;
+    int number;
+    enum parser_states state;
+    enum parser_status status;
+} parser_t;
+
 static void make_unknown_symbol_err_msg(char ch)
 {
     int len;
@@ -38,12 +47,17 @@ static void parser_handle_unknown_symbol(parser_t *parser)
         parser->status = ps_ok;
         return;
     }
-    if (ch == '\n') {
+    switch (ch) {
+    case '\n':
         parser->status = ps_eoln;
         return;
+    case 'q':
+        parser->status = ps_eof;
+        return;
+    default:
+        make_unknown_symbol_err_msg(ch);
+        parser->status = ps_err;
     }
-    make_unknown_symbol_err_msg(ch);
-    parser->status = ps_err;
 }
 
 static void parser_handle_num_read_end(parser_t *parser, expression_t *expr)

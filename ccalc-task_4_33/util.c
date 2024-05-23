@@ -64,6 +64,11 @@ void print_int(int res)
 
     len = int_to_str(res, buf, num_buf_size);
     write(1, buf, len);
+}
+
+void print_int_line(int res)
+{
+    print_int(res);
     write(1, "\n", 1);
 }
 
@@ -111,5 +116,10 @@ void print_str(const char *s)
 {
     int len = str_length(s);
     write(1, s, len); 
+}
+
+void print_str_line(const char *s)
+{
+    print_str(s);
     write(1, "\n", 1); 
 }

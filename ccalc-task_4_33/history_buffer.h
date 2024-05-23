@@ -9,9 +9,11 @@ typedef struct history_buffer {
 } history_buffer_t;
 
 void history_init(history_buffer_t *hist);
+int history_size(const history_buffer_t *hist);
 int history_add(int n, history_buffer_t *hist);
 int history_get(int idx, const history_buffer_t *hist);
+int history_top(const history_buffer_t *hist);
 void history_clear(history_buffer_t *hist);
-void history_destroy(int n, history_buffer_t *hist);
+void history_destroy(history_buffer_t *hist);
 
 #endif
