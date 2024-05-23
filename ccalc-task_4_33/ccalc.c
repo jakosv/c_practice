@@ -4,7 +4,7 @@
 #include "stack.h"
 #include "util.h"
 #include "expr_parser.h"
-#include "expr_evulator.h"
+#include "expr_evaluator.h"
 
 int main()
 {
@@ -23,7 +23,7 @@ int main()
 
     status = ps_ok;
     while (status != ps_eof) {
-        enum expr_evulator_status evulate_status;
+        enum expr_eval_status eval_status;
         int res;
         expression_init(&expr);
         status = parse_expression(&expr);
@@ -34,9 +34,9 @@ int main()
         }
         if (expr.size == 0)
             continue;
-        evulate_status = evulate_expression(&expr, &res);
-        if (evulate_status == es_err)
-            print_str(expr_evulator_err_msg);
+        eval_status = eval_expression(&expr, &res);
+        if (eval_status == es_err)
+            print_str(expr_eval_err_msg);
         else
             print_int(res);
     }
