@@ -2,8 +2,8 @@
 
 while read a b ; do
     res=`echo $a | ./ccalc`
-    if [ x"$res" != x"\$0 = $b" ] ; then
-        echo TEST $a FAILED: expected "\$0 = $b", got "$res"
+    if [ x"$res" != x"\$1 = $b" ] ; then
+        echo TEST $a FAILED: expected "\$1 = $b", got "$res"
     fi
 done <<END
     2+20*6%10 2

@@ -8,10 +8,10 @@
 
 int read_line(char *buf, int buflen)
 {
-    int cnt;
+    int cnt, res;
     char ch;
     cnt = 0;
-    while (read(1, &ch, 1) > 0) {
+    while ((res = read(0, &ch, 1)) > 0) {
         if (ch == '\n' || cnt >= buflen)
             return cnt;
         buf[cnt] = ch;
@@ -52,7 +52,7 @@ int main()
     while ((res = read_line(line_buf, buflen)) != -1) {
         enum parser_status status;
         enum expr_eval_status eval_status;
-
+        
         perform_command(line_buf, res, &history);
         expression_init(&expr);
         status = parse_expression(line_buf, res, &expr);

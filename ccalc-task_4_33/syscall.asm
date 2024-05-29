@@ -27,18 +27,18 @@ _generic_syscall_3:
 	push ebp
 	mov ebp, esp
 	push ebx
-	push ecx
 
 	mov ebx, [ebp+8]
 	mov ecx, [ebp+12]
 	mov edx, [ebp+16]
 	int 80h
-	test eax, 0fff00000h
-	jz .ok
+	mov edx, eax
+	and edx, 0fffff000h
+	cmp edx, 0fffff000h
+	jnz .ok
 	mov [errno], eax 
 	mov eax, -1
 .ok:	
-	pop ecx
 	pop ebx
 	mov esp, ebp
 	pop ebp
@@ -79,7 +79,7 @@ _exit:
 %else
 exit:
 	mov eax, 1
-	mov ebx, [ebp+4]
+	mov ebx, [esp+4]
 	int 80h
 %endif
 
