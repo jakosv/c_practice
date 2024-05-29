@@ -7,7 +7,6 @@
 enum expr_eval_status { es_ok, es_err };
 extern char expr_eval_err_msg[];
 
-enum expr_eval_status eval_expression(const expression_t *expr,
-                                      history_buffer_t *results);
+enum expr_eval_status eval_expression(const expression_t *expr, int *res);
 
 #endif

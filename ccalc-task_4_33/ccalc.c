@@ -5,6 +5,7 @@
 #include "util.h"
 #include "expr_parser.h"
 #include "expr_evaluator.h"
+#include "variable.h"
 
 int read_line(char *buf, int buflen)
 {
@@ -20,22 +21,25 @@ int read_line(char *buf, int buflen)
     return cnt > 0 ? cnt : -1;
 }
 
-void perform_command(char *line_buf, int buflen, history_buffer_t *hist)
+int perform_command(char *line_buf, int buflen, history_buffer_t *hist)
 {
     if (line_buf[0] == 'q') {
-        exit(28);
+        exit(0);
     } else if (line_buf[0] == 'c') {
+        print_str_line("History has been cleared");
         history_clear(hist);
         history_add(0, hist);
+        return 1;
     }
+    return 0;
 }
 
-void print_answer(const history_buffer_t *history)
+void print_answer(int res, int pos)
 {
     print_str("$");
-    print_int(history_size(history)-1);
+    print_int(pos);
     print_str(" = ");
-    print_int_line(history_top(history));
+    print_int_line(res);
 }
 
 int main()
@@ -50,23 +54,42 @@ int main()
     history_add(0, &history);
 
     while ((res = read_line(line_buf, buflen)) != -1) {
-        enum parser_status status;
+        enum parser_status parse_status;
+        enum history_err hist_err;
         enum expr_eval_status eval_status;
+        int cmd_res;
         
-        perform_command(line_buf, res, &history);
+        cmd_res = perform_command(line_buf, res, &history);
+        if (cmd_res > 0)
+            continue;
+
         expression_init(&expr);
-        status = parse_expression(line_buf, res, &expr);
-        if (status == ps_err) {
+        parse_status = parse_expression(line_buf, res, &expr);
+        if (parse_status == ps_err) {
             print_str_line(parser_err_msg);
             continue;
         }
         if (expr.size == 0)
             continue;
-        eval_status = eval_expression(&expr, &history);
+
+        hist_err = replace_expr_variables(&history, &expr);
+        if (hist_err == hs_out_of_range) {
+            print_str_line("Variable number out of range");
+            continue;
+        }
+
+        eval_status = eval_expression(&expr, &res);
         if (eval_status == es_err)
             print_str_line(expr_eval_err_msg);
-        else
-            print_answer(&history);
+        else {
+            hist_err = history_add(res, &history);
+            if (hist_err == hs_full) {
+                print_int_line(res);
+                print_str_line("History is full: use 'c' command to clear");
+            } else {
+                print_answer(res, history_size(&history)-1);
+            }
+        }
     }
 
     history_destroy(&history);

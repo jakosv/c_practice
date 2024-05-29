@@ -4,7 +4,7 @@ LD = ld
 CFLAGS = -Wall -ansi -pedantic -g -m32 -nostdlib
 ASMFLAGS = -g
 OBJMODULES = ccalc.o operator.o stack.o history_buffer.o syscall.o \
-			 expression.o expr_parser.o expr_evaluator.o util.o
+			 expression.o variable.o expr_parser.o expr_evaluator.o util.o
 
 UNAME_S = $(shell uname -s)
 ifeq ($(UNAME_S),Linux)

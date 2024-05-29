@@ -3,7 +3,6 @@
 #include "operator.h"
 #include "syscall.h"
 #include "util.h"
-#include "history_buffer.h"
 
 enum { max_eval_err_msg_len = 256 };
 char expr_eval_err_msg[max_eval_err_msg_len];
@@ -12,7 +11,7 @@ static const char brackets_err_msg[] = "Wrong brackets count!";
 static const char illegal_num_seq_err_msg[] = "Illegal numbers sequence: ";
 static const char illegal_op_seq_err_msg[] = "Illegal operators sequence: ";
 
-enum expr_eval_state { est_init, est_num, est_op, est_get_prev_result };
+enum expr_eval_state { est_init, est_num, est_op };
 
 typedef struct expr_evaluator {
     char_stack_t op_st;
@@ -137,10 +136,6 @@ static void eval_process_lonely_operator(char op, expr_evaluator_t *eval)
         evaluate_operator(op, eval);
         eval->state = est_op;
     } else if (is_unary_operator(op)) {
-        if (op == '$') {
-            eval->state = est_get_prev_result;
-            return;
-        }
         evaluate_unary_operation(op, eval);
         eval->state = est_num;
     } else {
@@ -150,7 +145,7 @@ static void eval_process_lonely_operator(char op, expr_evaluator_t *eval)
 }
 
 static void eval_handle_init_state(const expr_item_t *item,
-                                       expr_evaluator_t *eval)
+                                   expr_evaluator_t *eval)
 {
     switch (item->type) {
     case eit_op:
@@ -160,15 +155,13 @@ static void eval_handle_init_state(const expr_item_t *item,
         int_stack_push(item->number, &eval->num_st);
         eval->state = est_op;
         break;
-    case eit_var:
-        break;
     default:
         break;
     }
 }
 
 static void eval_handle_operator_state(const expr_item_t *item,
-                                           expr_evaluator_t *eval)
+                                       expr_evaluator_t *eval)
 {
     switch (item->type) {
     case eit_op:
@@ -194,15 +187,13 @@ static void eval_handle_operator_state(const expr_item_t *item,
         eval->state = est_num;
         */
         break;
-    case eit_var:
-        break;
     default:
         break;
     }
 }
 
 static void eval_handle_number_state(const expr_item_t *item,
-                                         expr_evaluator_t *eval)
+                                     expr_evaluator_t *eval)
 {
     switch (item->type) {
     case eit_op:
@@ -212,41 +203,13 @@ static void eval_handle_number_state(const expr_item_t *item,
         int_stack_push(item->number, &eval->num_st);
         eval->state = est_op;
         break;
-    case eit_var:
-        break;
-    default:
-        break;
-    }
-}
-
-static void eval_handle_prev_result(const expr_item_t *item, 
-                                    expr_evaluator_t *eval,
-                                    history_buffer_t *results)
-{
-    switch (item->type) {
-    case eit_op:
-        make_illegal_op_seq_err_msg(item->op, int_stack_top(&eval->num_st));
-        eval->status = es_err;
-        break;
-    case eit_int:
-        if (history_size(results) <= item->number) {
-            /* wrong result number */
-            eval->status = es_err;
-            break;
-        }
-        int_stack_push(history_get(item->number, results), &eval->num_st);
-        eval->state = est_op;
-        break;
-    case eit_var:
-        break;
     default:
         break;
     }
 }
 
 static void evaluate_expr_item(const expr_item_t *item,
-                               expr_evaluator_t *eval,
-                               history_buffer_t *results)
+                               expr_evaluator_t *eval)
 {
     switch (eval->state) {
     case est_init:
@@ -258,15 +221,12 @@ static void evaluate_expr_item(const expr_item_t *item,
     case est_num:
         eval_handle_number_state(item, eval);
         break;
-    case est_get_prev_result:
-        eval_handle_prev_result(item, eval, results);
     default:
         break;
     }
 }
 
-enum expr_eval_status eval_expression(const expression_t *expr,
-                                      history_buffer_t *results)
+enum expr_eval_status eval_expression(const expression_t *expr, int *res)
 {
     expr_evaluator_t eval;
     enum expr_eval_status status;
@@ -274,8 +234,9 @@ enum expr_eval_status eval_expression(const expression_t *expr,
 
     expr_evaluator_init(&eval);
 
+    *res = 0;
     for (i = 0; i < expr->size; i++) {
-        evaluate_expr_item(&expr->items[i], &eval, results);
+        evaluate_expr_item(&expr->items[i], &eval);
         if (eval.status == es_err)
             break;
     }
@@ -287,7 +248,7 @@ enum expr_eval_status eval_expression(const expression_t *expr,
         str_copy(brackets_err_msg, expr_eval_err_msg, 
                  max_eval_err_msg_len);
     } else {
-        history_add(int_stack_top(&eval.num_st), results);
+        *res = int_stack_top(&eval.num_st);
     }
 
     status = eval.status;

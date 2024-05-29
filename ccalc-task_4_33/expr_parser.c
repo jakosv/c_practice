@@ -4,6 +4,7 @@
 #include "history_buffer.h"
 #include "stack.h"
 #include "util.h"
+#include "variable.h"
 
 enum { max_parser_err_msg_len = 256 };
 
@@ -11,7 +12,7 @@ char parser_err_msg[max_parser_err_msg_len];
 
 static const char unknown_symbol_err_msg[] = "Parse error: unknown symbol '";
 
-enum parser_states { pst_read, pst_num_read };
+enum parser_states { pst_read, pst_num_read, pst_var_read };
 
 typedef struct parser {
     char ch;
@@ -53,7 +54,14 @@ static void parser_handle_unknown_symbol(parser_t *parser)
 
 static void parser_handle_num_read_end(parser_t *parser, expression_t *expr)
 {
-    expression_add_number(parser->number, expr);
+    switch (parser->state) {
+    case pst_num_read:
+        expression_add_number(parser->number, expr);
+        break;
+    case pst_var_read:
+        expression_add_variable(parser->number, expr);
+        break;
+    }
 
     if (is_operator(parser->ch)) {
         expression_add_op(parser->ch, expr);
@@ -74,16 +82,20 @@ static void parser_handle_symbol(char ch, parser_t *parser,
         if (is_operator(ch)) {
             expression_add_op(ch, expr);
             break;
-        }
-        if (!is_digit(ch)) {
+        } else if (ch == var_char) {
+            parser->number = 0;
+            parser->state = pst_var_read;
+            break;
+        } else if (!is_digit(ch)) {
             parser_handle_unknown_symbol(parser);
             break;
-        }
+        } 
         parser->number = 0;
         parser->state = pst_num_read;
         /* go to pst_num_read state handler */
 
     case pst_num_read:
+    case pst_var_read:
         if (!is_digit(ch)) {
             parser_handle_num_read_end(parser, expr);
             break;
@@ -111,6 +123,8 @@ enum parser_status parse_expression(char *buf_str, int buflen,
     if (parser.status == ps_ok)
         if (parser.state == pst_num_read)
             expression_add_number(parser.number, expr);
+        else if (parser.state == pst_var_read)
+            expression_add_variable(parser.number, expr);
 
     return parser.status;
 }

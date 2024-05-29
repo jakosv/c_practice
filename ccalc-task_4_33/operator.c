@@ -35,7 +35,6 @@ int is_unary_operator(char op)
     switch(op) {
     case '-':
     case '+':
-    case '$':
         return 1;
     }
     return 0;
@@ -71,7 +70,6 @@ int operator_priority(char op)
         return 4;
 
     case '(':
-    case '$':
         return 5;
     }
 

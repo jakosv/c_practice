@@ -10,7 +10,7 @@ typedef struct expr_item {
     union {
         char op;
         int number;
-        char var[sizeof(int)];
+        int var_num;
     };
 } expr_item_t;
 
@@ -22,6 +22,7 @@ typedef struct expression {
 
 void expression_init(expression_t *expr);
 void expression_add_number(int number, expression_t *expr);
+void expression_add_variable(int var_num, expression_t *expr);
 void expression_add_op(char op, expression_t *expr);
 
 #endif

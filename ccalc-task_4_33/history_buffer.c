@@ -5,29 +5,31 @@ void history_init(history_buffer_t *hist)
     hist->size = 0;
 }
 
-int history_add(int n, history_buffer_t *hist)
+enum history_err history_add(int n, history_buffer_t *hist)
 {
     if (hist->size >= history_buflen)
-        return 1;
+        return hs_full;
 
     hist->buf[hist->size] = n;
     hist->size += 1;
 
-    return 0;
+    return hs_ok;
 }
 
-int history_get(int idx, const history_buffer_t *hist)
+enum history_err history_get(int idx, const history_buffer_t *hist, int *res)
 {
-    if (idx > hist->size)
-        return 0;
-    return hist->buf[idx];
+    if (idx >= hist->size)
+        return hs_out_of_range;
+    *res = hist->buf[idx];
+    return hs_ok;
 }
 
-int history_top(const history_buffer_t *hist)
+enum history_err history_top(const history_buffer_t *hist, int *res)
 {
     if (hist->size == 0)
-        return 0;
-    return hist->buf[hist->size - 1];
+        return hs_out_of_range;
+    *res = hist->buf[hist->size - 1];
+    return hs_ok;
 }
 
 int history_size(const history_buffer_t *hist)
