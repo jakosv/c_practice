@@ -1,7 +1,7 @@
 PROG = ccalc 
 ASM = nasm
 LD = ld
-CFLAGS = -Wall -ansi -pedantic -g -m32
+CFLAGS = -Wall -ansi -pedantic -g -m32 -nostdlib
 ASMFLAGS = -g
 OBJMODULES = ccalc.o operator.o stack.o history_buffer.o syscall.o \
 			 expression.o expr_parser.o expr_evaluator.o util.o
@@ -12,11 +12,11 @@ ifeq ($(UNAME_S),Linux)
 	LDFLAGS = -m elf_i386
 endif
 ifeq ($(UNAME_S),FreeBSD)
-	ASMFLAGS += -f elf32 -dOS_LINUX
+	ASMFLAGS += -f elf32 -dOS_FREEBSD
 	LDFLAGS = -m elf_i386
 endif
 ifeq ($(UNAME_S),Darwin)
-	ASMFLAGS += -f macho -dOS_FREEBSD -g
+	ASMFLAGS += -f macho -dOS_DARWIN -g
 	LDFLAGS = -lSystem -macosx_version_min 10.13
 endif
 

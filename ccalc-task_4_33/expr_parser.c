@@ -47,17 +47,8 @@ static void parser_handle_unknown_symbol(parser_t *parser)
         parser->status = ps_ok;
         return;
     }
-    switch (ch) {
-    case '\n':
-        parser->status = ps_eoln;
-        return;
-    case 'q':
-        parser->status = ps_eof;
-        return;
-    default:
-        make_unknown_symbol_err_msg(ch);
-        parser->status = ps_err;
-    }
+    make_unknown_symbol_err_msg(ch);
+    parser->status = ps_err;
 }
 
 static void parser_handle_num_read_end(parser_t *parser, expression_t *expr)
@@ -74,15 +65,17 @@ static void parser_handle_num_read_end(parser_t *parser, expression_t *expr)
     parser->state = pst_read;
 }
 
-static void parser_handle_symbol(parser_t *parser, expression_t *expr)
+static void parser_handle_symbol(char ch, parser_t *parser,
+                                 expression_t *expr)
 {
+    parser->ch = ch;
     switch (parser->state) {
     case pst_read:
-        if (is_operator(parser->ch)) {
-            expression_add_op(parser->ch, expr);
+        if (is_operator(ch)) {
+            expression_add_op(ch, expr);
             break;
         }
-        if (!is_digit(parser->ch)) {
+        if (!is_digit(ch)) {
             parser_handle_unknown_symbol(parser);
             break;
         }
@@ -91,11 +84,11 @@ static void parser_handle_symbol(parser_t *parser, expression_t *expr)
         /* go to pst_num_read state handler */
 
     case pst_num_read:
-        if (!is_digit(parser->ch)) {
+        if (!is_digit(ch)) {
             parser_handle_num_read_end(parser, expr);
             break;
         }
-        append_char_to_number(parser->ch, &parser->number);
+        append_char_to_number(ch, &parser->number);
         break;
         
     default:
@@ -103,29 +96,21 @@ static void parser_handle_symbol(parser_t *parser, expression_t *expr)
     }
 }
 
-enum parser_status parse_expression(expression_t *expr)
+enum parser_status parse_expression(char *buf_str, int buflen,
+                                    expression_t *expr)
 {
     parser_t parser;
+    int i;
 
     parser.status = ps_ok;
     parser.state = pst_read;
 
-    while (read(0, &parser.ch, 1) > 0) {
-        if (parser.status != ps_ok) {
-            if (parser.ch == '\n')
-                break;
-            continue;
-        }
-        parser_handle_symbol(&parser, expr);
-        if (parser.status == ps_eoln)
-            return ps_ok;
-    }
+    for (i = 0; i < buflen; i++)
+        parser_handle_symbol(buf_str[i], &parser, expr);
 
-    if (parser.status == ps_ok) {
-        parser.status = ps_eof;
+    if (parser.status == ps_ok)
         if (parser.state == pst_num_read)
             expression_add_number(parser.number, expr);
-    }
 
     return parser.status;
 }

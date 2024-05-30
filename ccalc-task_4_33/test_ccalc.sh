@@ -1,11 +1,9 @@
 #!/bin/sh
 
-prog="ccalc"
-
 while read a b ; do
-    res=`echo "$a" | ./$prog`
-    if [ x"$res" != x"$b" ] ; then
-        echo TEST $a FAILED: expected "\$1 = $b", got "$res"
+    res=`echo $a | ./ccalc`
+    if [ x"$res" != x"\$0 = $b" ] ; then
+        echo TEST $a FAILED: expected "\$0 = $b", got "$res"
     fi
 done <<END
     2+20*6%10 2

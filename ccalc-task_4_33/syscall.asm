@@ -1,30 +1,88 @@
 global _start
 
-global _errno
+global errno
+
+%ifdef OS_DARWIN
 global _read
 global _write
+global _exit
 
 extern _main
 
+%else
+global read
+global write
+global exit
+
+extern main
+%endif
+
 section .bss
-_errno resd 1
+errno resd 1
 
 section .text
 
 _generic_syscall_3:
+%ifdef OS_LINUX
+	push ebp
+	mov ebp, esp
+	push ebx
+	push ecx
+
+	mov ebx, [ebp+8]
+	mov ecx, [ebp+12]
+	mov edx, [ebp+16]
+	int 80h
+	test eax, 0fff00000h
+	jz .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:	
+	pop ecx
+	pop ebx
+	mov esp, ebp
+	pop ebp
+	ret
+%else
 	int 80h
 	jnc .ok
-	mov [_errno], eax 
+	mov [errno], eax 
 	mov eax, -1
 .ok:	ret
+%endif
 
+
+; int read(int fd, char *buf, int count);
+%ifdef OS_DARWIN
 _read:
+%else
+read:
+%endif
 	mov eax, 3
 	jmp _generic_syscall_3
 
+
+; int write(int fd, const char *buf, int count);
+%ifdef OS_DARWIN
 _write:
+%else
+write:
+%endif
 	mov eax, 4
 	jmp _generic_syscall_3 
+
+; void exit(int status);
+%ifdef OS_DARWIN
+_exit:
+	mov eax, 1
+	int 80h
+%else
+exit:
+	mov eax, 1
+	mov ebx, [ebp+4]
+	int 80h
+%endif
+
 
 _start:
 	mov ecx, [esp]
@@ -34,10 +92,15 @@ _start:
 	push ebx
 	push ecx
 
+%ifdef OS_DARWIN
 	call _main
+%else
+	call main
+%endif
 
-	; exit
 	push eax
-	push eax
-	mov eax, 1
-	int 80h
+%ifdef OS_DARWIN
+	call _exit
+%else
+	call exit
+%endif

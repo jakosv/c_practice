@@ -6,8 +6,9 @@
 
 extern char parser_err_msg[];
 
-enum parser_status { ps_ok, ps_eoln, ps_eof, ps_err };
+enum parser_status { ps_ok, ps_err };
 
-enum parser_status parse_expression(expression_t *expr);
+enum parser_status parse_expression(char *buf_str, int buflen, 
+                                    expression_t *expr);
 
 #endif
