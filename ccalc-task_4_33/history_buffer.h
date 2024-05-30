@@ -2,7 +2,7 @@
 #define HISTORY_BUFFER_H_SENTRY
 
 enum history_err { hs_ok, hs_out_of_range, hs_full };
-enum { history_buflen = 2 };
+enum { history_buflen = 256 };
 
 typedef struct history_buffer {
     int size;
