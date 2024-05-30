@@ -61,27 +61,27 @@ int main()
         
         cmd_res = perform_command(line_buf, res, &history);
         if (cmd_res > 0)
-            continue;
+            goto next_line;
 
         expression_init(&expr);
         parse_status = parse_expression(line_buf, res, &expr);
         if (parse_status == ps_err) {
             print_str_line(parser_err_msg);
-            continue;
+            goto next_line;
         }
         if (expr.size == 0)
-            continue;
+            goto next_line;
 
         hist_err = replace_expr_variables(&history, &expr);
         if (hist_err == hs_out_of_range) {
             print_str_line("Variable number out of range");
-            continue;
+            goto next_line;
         }
 
         eval_status = eval_expression(&expr, &res);
-        if (eval_status == es_err)
+        if (eval_status == es_err) {
             print_str_line(expr_eval_err_msg);
-        else {
+        } else {
             hist_err = history_add(res, &history);
             if (hist_err == hs_full) {
                 print_int_line(res);
@@ -90,6 +90,8 @@ int main()
                 print_answer(res, history_size(&history)-1);
             }
         }
+next_line:
+        expression_destroy(&expr);
     }
 
     history_destroy(&history);

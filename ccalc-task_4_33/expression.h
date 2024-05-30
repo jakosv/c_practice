@@ -21,6 +21,7 @@ typedef struct expression {
 
 
 void expression_init(expression_t *expr);
+void expression_destroy(expression_t *expr);
 void expression_add_number(int number, expression_t *expr);
 void expression_add_variable(int var_num, expression_t *expr);
 void expression_add_op(char op, expression_t *expr);

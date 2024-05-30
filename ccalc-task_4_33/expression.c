@@ -5,6 +5,11 @@ void expression_init(expression_t *expr)
     expr->size = 0;
 }
 
+void expression_destroy(expression_t *expr)
+{
+    expr->size = 0;
+}
+
 void expression_add_number(int number, expression_t *expr)
 {
     expr_item_t *item;
