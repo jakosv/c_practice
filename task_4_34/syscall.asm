@@ -71,6 +71,55 @@ write:
 	mov eax, 4
 	jmp _generic_syscall_3 
 
+
+; int open(const char *filename, int flags);
+%ifdef OS_DARWIN
+_open:
+%else:
+open:
+%endif
+%ifdef OS_LINUX
+	push ebp
+	mov ebp, esp
+	push ebx
+
+	mov ebx, [ebp+8]
+	mov ecx, [ebp+12]
+	mov edx, 0666q
+	mov eax, 5
+	int 80h
+	mov edx, eax
+	and edx, 0fffff000h
+	cmp edx, 0fffff000h
+	jnz .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:	
+	pop ebx
+	mov esp, ebp
+	pop ebp
+	ret
+%else
+;	push ebp
+;	mov ebp, esp
+
+;	push dword 0666q
+;	push dword [ebp+12]
+;	push dword [ebp+8]
+	mov eax, 5
+;	push eax
+	int 80h
+;	pop ebx
+	jnc .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:	
+;	mov esp, ebp
+;	pop ebp
+	ret
+%endif
+
+
 ; void exit(int status);
 %ifdef OS_DARWIN
 _exit:
