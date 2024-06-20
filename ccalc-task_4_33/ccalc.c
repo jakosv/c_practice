@@ -49,7 +49,6 @@ int main()
     enum { buflen = 256 };
     char line_buf[buflen];
     int res;
-    int *test;
     history_buffer_t history;
     expression_t expr;
 
