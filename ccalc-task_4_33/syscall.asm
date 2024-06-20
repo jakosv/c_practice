@@ -71,6 +71,7 @@ write:
 	mov eax, 4
 	jmp _generic_syscall_3 
 
+
 ; void exit(int status);
 %ifdef OS_DARWIN
 _exit:
@@ -84,6 +85,87 @@ exit:
 %else
 	mov eax, 1
 	int 80h
+%endif
+
+; void mmap(void *addr, size_t len, int prot, int flags, int fd, off_t offset);
+%ifdef OS_DARWIN
+_mmap:
+%else
+mmap:
+%endif
+%ifdef OS_LINUX
+	push ebp
+	mov ebp, esp
+
+	push ebx
+	push esi
+	push edi
+	push ebp
+
+	mov eax, 192
+	mov ebx, [esp+8]
+	mov ecx, [esp+12]
+	mov edx, [esp+16]
+	mov esi, [esp+20]
+	mov edi, [esp+24]
+	mov ebp, [esp+28]
+	int 80h
+	mov edx, eax
+	and edx, 0fffff000h
+	cmp edx, 0fffff000h
+	jnz .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:
+	pop ebp
+	pop edi
+	pop esi
+	pop ebx
+
+	mov esp, ebp
+	pop ebp
+%else
+	mov eax, 197
+	int 80h
+	jnc .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:	ret
+%endif
+
+; void munmap(void *addr, size_t len);
+%ifdef OS_DARWIN
+_munmap:
+%else
+munmap:
+%endif
+%ifdef OS_LINUX
+	push ebp
+	mov ebp, esp
+
+	push ebx
+
+	mov eax, 91
+	mov ebx, [esp+8]
+	int 80h
+	mov edx, eax
+	and edx, 0fffff000h
+	cmp edx, 0fffff000h
+	jnz .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:
+	pop ebx
+
+	mov esp, ebp
+	pop ebp
+%else
+	mov eax, 73
+	int 80h
+	jnc .ok
+	mov [errno], eax 
+	mov eax, -1
+.ok:	ret
 %endif
 
 
