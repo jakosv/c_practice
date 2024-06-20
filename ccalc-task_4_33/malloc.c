@@ -5,7 +5,7 @@
 
 struct htable_list_item {
     void *addr;
-    unsigned long long len;
+    unsigned long len;
     struct htable_list_item *next; 
 };
 
@@ -14,11 +14,11 @@ enum { hash_table_prime = 6151 };
 struct htable_list_item *hash_table[hash_table_prime];
 
 
-static void htable_list_add(void *addr, unsigned long long len, 
+static void htable_list_add(void *addr, unsigned long len, 
                             struct htable_list_item **lst)
 {
     struct htable_list_item *tmp;
-    unsigned long long item_len, page_count;
+    unsigned long item_len, page_count;
     page_count = (sizeof(*tmp) + PAGE_SIZE - 1) / PAGE_SIZE;
     item_len = page_count * PAGE_SIZE;
 
@@ -30,13 +30,13 @@ static void htable_list_add(void *addr, unsigned long long len,
     *lst = tmp;
 }
 
-static void htable_list_remove(void *addr, struct htable_list_item *lst)
+static void htable_list_remove(void *addr, struct htable_list_item **lst)
 {
     struct htable_list_item **item_ptr;
     struct htable_list_item *tmp;
-    unsigned long long item_len, page_count;
+    unsigned long item_len, page_count;
 
-    item_ptr = &lst;
+    item_ptr = lst;
     while (*item_ptr != NULL) {
         if ((*item_ptr)->addr != addr)
             item_ptr = &(*item_ptr)->next;
@@ -44,38 +44,39 @@ static void htable_list_remove(void *addr, struct htable_list_item *lst)
         *item_ptr = tmp->next;
         page_count = (sizeof(*tmp) + PAGE_SIZE - 1) / PAGE_SIZE;
         item_len = page_count * PAGE_SIZE;
+        munmap(tmp->addr, tmp->len);
         munmap(tmp, item_len);
         break;
     }
 }
 
-static void hash_table_add(void *addr, unsigned long long len)
+static void hash_table_add(void *addr, unsigned long len)
 {
-    unsigned long long pos;
-    struct htable_list_item *lst;
+    unsigned long pos;
+    struct htable_list_item **lst_ptr;
 
-    pos = (unsigned long long)addr % hash_table_prime;
-    lst = hash_table[pos];
-    htable_list_add(addr, len, &lst);
+    pos = (unsigned long)addr % hash_table_prime;
+    lst_ptr = &hash_table[pos];
+    htable_list_add(addr, len, lst_ptr);
 }
 
 static void hash_table_remove(void *addr)
 {
-    unsigned long long pos;
-    struct htable_list_item *lst;
+    unsigned long pos;
+    struct htable_list_item **lst_ptr;
 
-    pos = (unsigned long long)addr % hash_table_prime;
-    lst = hash_table[pos];
-    if (!lst)
+    pos = (unsigned long)addr % hash_table_prime;
+    lst_ptr = &hash_table[pos];
+    if (!*lst_ptr)
         return;
-    htable_list_remove(addr, lst);
+    htable_list_remove(addr, lst_ptr);
 }
 
 void *malloc(unsigned int size)
 {
     void *addr;
     unsigned int page_count;
-    unsigned long long len;
+    unsigned long len;
     page_count = (size + PAGE_SIZE - 1) / PAGE_SIZE;
     len = page_count * PAGE_SIZE;
     addr = mmap(NULL, len, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS,

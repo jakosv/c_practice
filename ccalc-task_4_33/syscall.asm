@@ -6,6 +6,8 @@ global errno
 global _read
 global _write
 global _exit
+global _mmap 
+global _munmap 
 
 extern _main
 
@@ -13,6 +15,8 @@ extern _main
 global read
 global write
 global exit
+global mmap 
+global munmap 
 
 extern main
 %endif
@@ -103,12 +107,12 @@ mmap:
 	push ebp
 
 	mov eax, 192
-	mov ebx, [esp+8]
-	mov ecx, [esp+12]
-	mov edx, [esp+16]
-	mov esi, [esp+20]
-	mov edi, [esp+24]
-	mov ebp, [esp+28]
+	mov ebx, [ebp+8]
+	mov ecx, [ebp+12]
+	mov edx, [ebp+16]
+	mov esi, [ebp+20]
+	mov edi, [ebp+24]
+	mov ebp, [ebp+28]
 	int 80h
 	mov edx, eax
 	and edx, 0fffff000h
@@ -124,6 +128,7 @@ mmap:
 
 	mov esp, ebp
 	pop ebp
+	ret
 %else
 	mov eax, 197
 	int 80h
@@ -146,7 +151,8 @@ munmap:
 	push ebx
 
 	mov eax, 91
-	mov ebx, [esp+8]
+	mov ebx, [ebp+8]
+	mov ecx, [ebp+12]
 	int 80h
 	mov edx, eax
 	and edx, 0fffff000h
@@ -159,6 +165,7 @@ munmap:
 
 	mov esp, ebp
 	pop ebp
+	ret
 %else
 	mov eax, 73
 	int 80h

@@ -53,29 +53,6 @@ int main()
     history_buffer_t history;
     expression_t expr;
 
-    /*
-    test = mmap(NULL, PAGE_SIZE, PROT_READ|PROT_WRITE,
-                MAP_PRIVATE|MAP_ANONYMOUS, 0, 0);
-
-    if (test == MAP_FAILED) {
-        print_str_line("MAP FAILED");
-        return 1;
-    }
-    *test = 228;
-    print_int_line(*test);
-    test = munmap(test, PAGE_SIZE);
-    *test = 228;
-    if (test == MAP_FAILED) {
-        print_str_line("UNMAP FAILED");
-        return 1;
-    }
-    */
-    test = malloc(sizeof(int));
-    *test = 228;
-    print_int_line(*test);
-    free(test);
-    *test = 228;
-
     history_init(&history);
     history_add(0, &history);
 
